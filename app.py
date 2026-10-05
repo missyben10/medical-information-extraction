@@ -243,7 +243,37 @@ def logout():
 @login_required
 def dashboard():
     records = load_dataset()
-    return render_template('index.html', user=session, records=records)
+    
+    unique_patients = len(set(r['Patient_ID'] for r in records if r.get('Patient_ID')))
+    all_diseases = set()
+    all_meds = set()
+    adr_count = 0
+    high_risk_count = 0
+    
+    for r in records:
+        for d in r.get('Disease', []):
+            if d and d.strip() and d != 'None':
+                all_diseases.add(d.strip())
+        for m in r.get('Medication', []):
+            if m and m.strip() and m != 'None':
+                all_meds.add(m.strip())
+        for a in r.get('Adverse_Drug_Reaction', []):
+            if a and a.strip() and a.lower() != 'none':
+                adr_count += 1
+        if r.get('Severity_Risk') == 'High':
+            high_risk_count += 1
+
+    stats = {
+        'total_notes': len(records),
+        'unique_patients': unique_patients,
+        'unique_diseases': len(all_diseases),
+        'unique_meds': len(all_meds),
+        'adr_count': adr_count,
+        'high_risk_count': high_risk_count
+    }
+
+    return render_template('index.html', user=session, records=records, stats=stats)
+
 
 @app.route('/api/nlp/extract', methods=['POST'])
 @login_required
@@ -262,6 +292,20 @@ def export_csv():
     export_df.to_csv(out_path, index=False)
     return send_file(out_path, as_attachment=True, download_name='medical_information_extracted.csv')
 
+@app.route('/upload', methods=['POST'])
+@login_required
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'No file uploaded.'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file.'}), 400
+    if file and file.filename.lower().endswith('.csv'):
+        file.save(CSV_PATH)
+        return jsonify({'success': True, 'message': f'Dataset "{file.filename}" uploaded and processed successfully.'})
+    return jsonify({'success': False, 'message': 'Invalid file format. Please upload a .csv file.'}), 400
+
 if __name__ == '__main__':
     print("[SERVER] Starting Flask Application on http://localhost:5000")
     app.run(host='0.0.0.0', port=5000, debug=True)
+
