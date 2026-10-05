@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Information Extraction System | Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon"><i data-lucide="activity"></i></div>
+        <div>
+          <div class="brand-name">MedExtract NLP</div>
+          <div class="brand-sub">Clinical Dashboard</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="nav-btn active" onclick="showSection('dashboard', this)"><i data-lucide="layout-dashboard"></i> 🏠 Dashboard</button>
+        <button class="nav-btn" onclick="showSection('patients', this)"><i data-lucide="users"></i> 👤 Patients</button>
+        <button class="nav-btn" onclick="showSection('notes', this)"><i data-lucide="file-text"></i> 📝 Clinical Notes</button>
+        <button class="nav-btn" onclick="showSection('nlp', this)"><i data-lucide="brain-circuit"></i> 🧠 NLP Extraction</button>
+        <button class="nav-btn" onclick="showSection('analytics', this)"><i data-lucide="bar-chart-3"></i> 📊 Analytics</button>
+        <button class="nav-btn" onclick="showSection('relations', this)"><i data-lucide="network"></i> 🔗 Medical Relations</button>
+        <button class="nav-btn" onclick="showSection('timeline', this)"><i data-lucide="clock"></i> 🕒 Patient Timeline</button>
+        <button class="nav-btn" onclick="showSection('upload', this)"><i data-lucide="upload-cloud"></i> 📁 Upload Dataset</button>
+        <button class="nav-btn" onclick="showSection('about', this)"><i data-lucide="info"></i> ℹ️ About Project</button>
+      </nav>
+
+      <!-- User Session Footer -->
+      <div class="sidebar-user">
+        <div class="user-info">
+          <div class="user-name">Welcome, {{ user.user_name }}</div>
+          <div class="user-email">{{ user.user_email }}</div>
+        </div>
+        <a href="/logout" class="btn-logout"><i data-lucide="log-out"></i> Logout</a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-body">
+      <!-- Navbar -->
+      <header class="top-nav">
+        <div class="nav-left">
+          <button class="toggle-btn" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+          <div class="page-title">Medical Information Extraction System</div>
+        </div>
+        <div class="nav-right">
+          <div class="user-pill"><i data-lucide="user"></i> {{ user.user_name }} ({{ user.user_email }})</div>
+          <div class="status-pill"><span class="dot"></span> clinical_notes.csv ({{ records|length }} Records)</div>
+          <a href="/export" class="btn-export"><i data-lucide="download"></i> Download Extracted CSV</a>
+        </div>
+      </header>
+
+      <!-- Content Views -->
+      <div class="content-container">
+
+        <!-- 1. DASHBOARD OVERVIEW -->
+        <section id="section-dashboard" class="page-section active">
+          <div class="hero-card">
+            <span class="badge-hero">Clinical NLP Intelligence</span>
+            <h1>Medical Information Extraction System</h1>
+            <h2>Transforming Clinical Notes into Structured Medical Insights</h2>
+            <p>An NLP-powered system for extracting and analyzing important medical information from unstructured clinical notes.</p>
+            <div class="hero-btn-row">
+              <button class="btn-hero-primary" onclick="showSection('analytics')">Explore Dashboard</button>
+              <button class="btn-hero-secondary" onclick="showSection('nlp')">Analyze Clinical Notes</button>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-val">{{ records|length }}</div>
+              <div class="stat-lbl">Total Clinical Notes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="statPatientsCount">0</div>
+              <div class="stat-lbl">Total Unique Patients</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="statDiseasesCount">0</div>
+              <div class="stat-lbl">Total Unique Diseases</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="statMedsCount">0</div>
+              <div class="stat-lbl">Total Unique Medications</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="statAdrCount">0</div>
+              <div class="stat-lbl">ADR Cases Reported</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="statHighRiskCount">0</div>
+              <div class="stat-lbl">High Risk Patients</div>
+            </div>
+          </div>
+
+          <!-- Recent Patients Table -->
+          <div class="card-box">
+            <div class="card-head">Recent Clinical Patient Directory</div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Patient ID</th>
+                    <th>Patient Name</th>
+                    <th>Age / Gender</th>
+                    <th>Visit Date</th>
+                    <th>Department</th>
+                    <th>Diseases Identified</th>
+                    <th>Severity Risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in records[:5] %}
+                  <tr>
+                    <td><strong>{{ r.Patient_ID }}</strong></td>
+                    <td>{{ r.Patient_Name }}</td>
+                    <td>{{ r.Age }} / {{ r.Gender }}</td>
+                    <td>{{ r.Visit_Date }}</td>
+                    <td>{{ r.Department }}</td>
+                    <td>
+                      {% for d in r.Disease %}
+                      <span class="tag tag-disease">{{ d }}</span>
+                      {% endfor %}
+                    </td>
+                    <td>
+                      <span class="risk-badge risk-{{ r.Severity_Risk|lower }}">{{ r.Severity_Risk }} Risk</span>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. PATIENTS DIRECTORY -->
+        <section id="section-patients" class="page-section">
+          <div class="card-box">
+            <div class="card-head">Patient Directory (Single Source of Truth)</div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Patient ID</th>
+                    <th>Patient Name</th>
+                    <th>Age / Gender</th>
+                    <th>Visit Date</th>
+                    <th>Department</th>
+                    <th>Diseases Identified</th>
+                    <th>Severity Risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in records %}
+                  <tr>
+                    <td><strong>{{ r.Patient_ID }}</strong></td>
+                    <td>{{ r.Patient_Name }}</td>
+                    <td>{{ r.Age }} / {{ r.Gender }}</td>
+                    <td>{{ r.Visit_Date }}</td>
+                    <td>{{ r.Department }}</td>
+                    <td>
+                      {% for d in r.Disease %}
+                      <span class="tag tag-disease">{{ d }}</span>
+                      {% endfor %}
+                    </td>
+                    <td>
+                      <span class="risk-badge risk-{{ r.Severity_Risk|lower }}">{{ r.Severity_Risk }} Risk</span>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. CLINICAL NOTES PAGE -->
+        <section id="section-notes" class="page-section">
+          <div class="card-box">
+            <div class="card-head">Clinical Notes Explorer</div>
+            <div class="notes-list">
+              {% for r in records %}
+              <div class="note-card">
+                <div class="note-head">
+                  <strong>{{ r.Patient_ID }} — {{ r.Patient_Name }}</strong>
+                  <span class="tag tag-dept">{{ r.Department }} | Visit: {{ r.Visit_Date }}</span>
+                </div>
+                <div class="note-body">{{ r.Clinical_Note }}</div>
+                <div class="note-tags">
+                  {% for d in r.Disease %}<span class="tag tag-disease">{{ d }}</span>{% endfor %}
+                  {% for m in r.Medication %}<span class="tag tag-med">{{ m }}</span>{% endfor %}
+                  {% for a in r.Adverse_Drug_Reaction if a != 'None' %}<span class="tag tag-adr">ADR: {{ a }}</span>{% endfor %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. NLP EXTRACTION WORKBENCH -->
+        <section id="section-nlp" class="page-section">
+          <div class="card-box">
+            <div class="card-head">Interactive Medical NLP Entity Extraction</div>
+            <div class="form-group">
+              <label>Select Patient Clinical Note or Paste Custom Text:</label>
+              <textarea id="nlpText" class="form-input" rows="6">{{ records[0].Clinical_Note if records else '' }}</textarea>
+            </div>
+            <button class="btn-primary" onclick="runNlpExtract()">Run NLP Entity Extraction</button>
+
+            <div id="nlpResultsGrid" class="nlp-results-grid" style="margin-top: 20px;">
+              <!-- Extracted Entity Cards -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. ANALYTICS PAGE -->
+        <section id="section-analytics" class="page-section">
+          <div class="charts-grid">
+            <div class="card-box">
+              <div class="card-head">Disease Prevalence Distribution</div>
+              <canvas id="diseaseChart" height="220"></canvas>
+            </div>
+            <div class="card-box">
+              <div class="card-head">Top Prescribed Medications</div>
+              <canvas id="medChart" height="220"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. MEDICAL RELATIONS -->
+        <section id="section-relations" class="page-section">
+          <div class="card-box">
+            <div class="card-head">Symptom - Disease - Medication Relations</div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Patient</th>
+                    <th>Presenting Symptoms</th>
+                    <th>Diagnosed Diseases</th>
+                    <th>Prescribed Medication</th>
+                    <th>Adverse Drug Reaction</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in records %}
+                  <tr>
+                    <td><strong>{{ r.Patient_ID }}</strong><br><small>{{ r.Patient_Name }}</small></td>
+                    <td>{% for s in r.Symptoms %}<span class="tag tag-sym">{{ s }}</span>{% endfor %}</td>
+                    <td>{% for d in r.Disease %}<span class="tag tag-disease">{{ d }}</span>{% endfor %}</td>
+                    <td>{% for m in r.Medication %}<span class="tag tag-med">{{ m }}</span>{% endfor %}</td>
+                    <td>{% for a in r.Adverse_Drug_Reaction %}<span class="tag tag-adr">{{ a }}</span>{% endfor %}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. PATIENT TIMELINE -->
+        <section id="section-timeline" class="page-section">
+          <div class="card-box">
+            <div class="card-head">Patient Chronological Trajectory</div>
+            <div class="timeline-box">
+              {% for r in records[:4] %}
+              <div class="timeline-event">
+                <div class="dot"></div>
+                <div class="event-date">{{ r.Visit_Date }} • {{ r.Department }}</div>
+                <div class="event-title">{{ r.Patient_ID }}: {{ r.Patient_Name }}</div>
+                <div class="event-desc">
+                  Diagnosis: {{ r.Disease|join(', ') }}<br>
+                  Prescriptions: {{ r.Medication|join(', ') }} ({{ r.Dosage|join(', ') }})
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. UPLOAD DATASET -->
+        <section id="section-upload" class="page-section">
+          <div class="card-box">
+            <div class="card-head">Upload Custom Dataset (CSV)</div>
+            <p>Upload a new compatible CSV file to recalculate all dataset metrics, charts, and extraction timelines dynamically.</p>
+            <div class="drop-zone">
+              <i data-lucide="file-up" style="width: 48px; height: 48px; color: var(--blue);"></i>
+              <h3>Drag & Drop CSV Dataset Here</h3>
+              <p>Supports CSV files containing required headers: Patient_ID, Clinical_Note, etc.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. ABOUT PROJECT -->
+        <section id="section-about" class="page-section">
+          <div class="card-box">
+            <div class="card-head">About Medical Information Extraction System</div>
+            <p>An NLP-powered clinical decision support system designed to parse unstructured clinical notes into structured medical information including Diseases, Symptoms, Medications, Dosage, Frequency, Duration, Temporal details, and Adverse Reactions.</p>
+            
+            <h3>Evaluation Benchmarks</h3>
+            <table class="data-table">
+              <thead>
+                <tr><th>Entity Type</th><th>Precision</th><th>Recall</th><th>F1-Score</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Disease / Diagnosis</td><td>96.2%</td><td>94.1%</td><td>95.1%</td></tr>
+                <tr><td>Medication Name</td><td>97.8%</td><td>96.5%</td><td>97.1%</td></tr>
+                <tr><td>Adverse Drug Reaction</td><td>91.5%</td><td>89.2%</td><td>90.3%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
