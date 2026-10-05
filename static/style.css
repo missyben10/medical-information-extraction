@@ -20,12 +20,21 @@ body {
 .bg-dark { background-color: var(--dark-bg); }
 
 /* Login & Auth Cards */
+body.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
 .login-card {
   background: rgba(255, 255, 255, 0.96);
   border-radius: 24px;
   padding: 36px;
   width: 100%;
   max-width: 440px;
+  margin: 0 auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
   text-align: center;
   color: #0F172A;
