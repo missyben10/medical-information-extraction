@@ -4,4 +4,4 @@ An NLP-powered system for extracting and analyzing medical information from clin
 
 ## 🌐 Live Demo
 
-https://medical-information-extraction.onrender.com
+[🚀 Open Medical Information Extraction System](https://medical-information-extraction.onrender.com)
